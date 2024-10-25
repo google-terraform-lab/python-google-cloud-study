@@ -1,1 +1,4 @@
 .venv
+credential.json
+.terraform*
+*.tfstate*
