@@ -42,7 +42,7 @@ module pubsub-1 {
   source = "./modules/pubsub"
   name  = "bye"
   bucket_name = google_storage_bucket.pubsub-storage.name
-
+  from_date = "2024-10-26"
   subscriptions = [
     "bye-1"
   ]

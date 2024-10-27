@@ -4,6 +4,8 @@ import os
 
 bucket_name = os.getenv("BUCKET_NAME")
 topic_name = os.getenv("TOPIC_NAME")
+target_date = os.getenv("FROM_DATE")
+
 _, project_id, _, folder_path = topic_name.split("/")
 
 storage_client = storage.Client()
@@ -52,5 +54,4 @@ def process_dates_from_target(target_date_str):
         current_date += timedelta(days=1)
 
 if __name__ == "__main__":
-    target_date = "2024-10-26"
     process_dates_from_target(target_date)

@@ -20,6 +20,11 @@ variable labels {
   default = {}
 }
 
+variable from_date {
+  type = string
+  default = "2024-10-26"
+}
+
 
 resource "google_pubsub_topic" "default" {
   name = var.name
@@ -103,6 +108,10 @@ resource "google_cloud_run_v2_job" "redrive-job" {
           name = "TOPIC_NAME"
           value = google_pubsub_topic.default.id
         }
+        env {
+          name = "FROM_DATE"
+          value = var.from_date
+        } 
       }
     }
   }
