@@ -3,10 +3,12 @@ import io
 import os
 from google.cloud import storage
 import json
+from datetime import datetime, timedelta
 
 bucket_name = os.getenv("BUCKET_NAME")
 topic_name = os.getenv("TOPIC_NAME")
 start_date = os.getenv("START_DATE")
+inclusive = bool(os.getenv("INCLUSIVE", "1"))
 
 output_prefix = 'processed-messages'
 
@@ -14,18 +16,22 @@ _, project_id, _, folder_path = topic_name.split("/")
 
 client = storage.Client()
 
-from datetime import datetime, timedelta
 
-def interpolate_dates(start_date):
+def interpolate_dates(start_date: str, inclusive: bool = False):
     start_date_dt = datetime.strptime(start_date, '%Y-%m-%d')
-    end_date_dt = datetime.now() - timedelta(days=1)
+    if inclusive:
+        end_date_dt = datetime.now()
+    else:
+        end_date_dt = datetime.now() - timedelta(days=1)
+
     date_list = []
     current_date = start_date_dt
+ 
     while current_date <= end_date_dt:
         date_list.append(current_date.strftime('%Y-%m-%d'))
         current_date += timedelta(days=1)
-    return date_list
 
+    return date_list
 
 
 def compact_messages_by_hour(bucket_name: str, folder_path: str, date: str, output_prefix: str):
@@ -62,8 +68,9 @@ def compact_messages_by_hour(bucket_name: str, folder_path: str, date: str, outp
             print(f"Data compacted and saved to {compacted_blob_path}")
 
 def main():
-    for date in interpolate_dates(start_date):
-        print(f"Inspecting {start_date}")
+    for date in interpolate_dates(start_date=start_date, inclusive=inclusive):
+        print(f"Inspecting {date}")
+
         compact_messages_by_hour(
             bucket_name=bucket_name, 
             folder_path=folder_path, 
