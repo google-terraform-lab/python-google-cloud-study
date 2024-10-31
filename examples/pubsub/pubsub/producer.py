@@ -1,15 +1,12 @@
 from google.cloud import pubsub_v1
 import json
-
-publisher = pubsub_v1.PublisherClient()
-
-project_id = "personal-433817"
-topic_name = f"projects/{project_id}/topics/bye"
-
-import json
 import random
 from faker import Faker
 from datetime import datetime, timedelta, timezone
+import os
+
+publisher = pubsub_v1.PublisherClient()
+topic_name = os.getenv("TOPIC_NAME")
 
 fake = Faker()
 time_window_start = datetime.now(timezone.utc) - timedelta(days=1)

@@ -1,7 +1,7 @@
 
 TERRAFORM_IMAGE_NAME=hashicorp/terraform:1.9
 BUCKET_NAME=pubsub-store
-PUBSUB_TOPIC=projects/personal-433817/topic/bye-1
+PUBSUB_TOPIC=projects/personal-433817/topics/bye
 
 
 # TRACE, DEBUG, INFO, WARN or ERROR
@@ -47,7 +47,9 @@ destroy: init
 	${BASE_TERRAFORM} destroy --auto-approve
 
 pubsub-produce:
-	cd examples/pubsub && python pubsub/producer.py
+	cd examples/pubsub && \
+	TOPIC_NAME=${PUBSUB_TOPIC} \
+	python pubsub/producer.py
 
 pubsub-compact:
 	cd examples/pubsub && \
