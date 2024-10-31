@@ -52,16 +52,17 @@ resource "google_pubsub_subscription" "storage" {
 
   ack_deadline_seconds = 60
   
+  # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/pubsub_subscription#nested_cloud_storage_config
   cloud_storage_config {
     bucket = var.bucket_name
 
     filename_prefix = "${var.name}/"
-    filename_datetime_format = "YYYY-MM-DD/hh_mm_ssZ"
+    filename_datetime_format = "YYYY-MM-DD/hh/mm_ssZ"
     # filename_suffix = "-%{random_suffix}"
 
     max_bytes = 10 * 1000 * 1000
-    max_duration = "300s"
-    max_messages = 1000
+    max_duration = "600s"
+    max_messages = 10 * 1000
   }
 
   filter = <<EOF

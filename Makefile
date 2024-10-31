@@ -1,5 +1,8 @@
 
 TERRAFORM_IMAGE_NAME=hashicorp/terraform:1.9
+BUCKET_NAME=pubsub-store
+PUBSUB_TOPIC=projects/personal-433817/topic/bye-1
+
 
 # TRACE, DEBUG, INFO, WARN or ERROR
 BASE_TERRAFORM=docker run --rm \
@@ -37,5 +40,18 @@ deploy-basics: init
 deploy-all: deploy-basics build-and-push-redrive-image
 	${BASE_TERRAFORM} apply --auto-approve
 
+deploy:
+	${BASE_TERRAFORM} apply --auto-approve
+
 destroy: init
 	${BASE_TERRAFORM} destroy --auto-approve
+
+pubsub-produce:
+	cd examples/pubsub && python pubsub/producer.py
+
+pubsub-compact:
+	cd examples/pubsub && \
+	BUCKET_NAME=${BUCKET_NAME} \
+	TOPIC_NAME=${PUBSUB_TOPIC} \
+	START_DATE=2024-10-29 \
+	python pubsub/compact.py
