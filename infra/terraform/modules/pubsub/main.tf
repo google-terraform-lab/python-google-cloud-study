@@ -59,7 +59,7 @@ resource "google_pubsub_subscription" "storage" {
     filename_datetime_format = "YYYY-MM-DD/hh_mm_ssZ"
     # filename_suffix = "-%{random_suffix}"
 
-    max_bytes = 1000
+    max_bytes = 10 * 1000 * 1000
     max_duration = "300s"
     max_messages = 1000
   }
