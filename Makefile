@@ -34,6 +34,11 @@ deploy-basics: init
 	${BASE_TERRAFORM} apply \
 		-target=google_storage_bucket.pubsub-storage \
 		-target=google_artifact_registry_repository.redrive-repo \
+		-target=google_project_iam_custom_role.initial-role \
+		-target=google_project_iam_custom_role.basic-role \
+		-target=google_project_iam_member.members \
+		-target=google_storage_bucket_iam_member.bucket-members \
+		-target=google_project_iam_binding.project \
 		--auto-approve
 
 
