@@ -39,6 +39,8 @@ deploy-basics: init
 		-target=google_project_iam_member.members \
 		-target=google_storage_bucket_iam_member.bucket-members \
 		-target=google_project_iam_binding.project \
+		-target=google_bigquery_dataset.dataset \
+		-target=google_bigquery_table.bye \
 		--auto-approve
 
 

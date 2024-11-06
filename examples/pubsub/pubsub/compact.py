@@ -43,29 +43,29 @@ def compact_messages_by_hour(bucket_name: str, folder_path: str, date: str, outp
 
         sorted_blobs = sorted(blobs, key=lambda x: x.name)
         print(prefix, len(sorted_blobs))
-        compacted_data = []
+        compacted_data = ""
         for blob in sorted_blobs:
             content = blob.download_as_bytes()
             for line in content.decode().split("\n"):
                 if line:
-                    compacted_data.append(json.loads(line))
+                    compacted_data += line+"\n"
         
         if compacted_data:
-            output_data = json.dumps(compacted_data).encode('utf-8')
-            blob_path = f'{output_prefix}/{date}/{hour:02}.json'
+            output_data = compacted_data.encode('utf-8')
+            blob_path = f'{output_prefix}/day={date}/hour={hour:02}/data.json'
             output_blob = bucket.blob(blob_path)
             output_blob.upload_from_string(output_data) # not compacted
             print(f"Data compacted and saved to {blob_path}")
 
-            buffer = io.BytesIO()
-            with gzip.GzipFile(fileobj=buffer, mode='wb') as gz:
-                gz.write(output_data)
-            buffer.seek(0)
+            # buffer = io.BytesIO()
+            # with gzip.GzipFile(fileobj=buffer, mode='wb') as gz:
+            #     gz.write(output_data)
+            # buffer.seek(0)
 
-            compacted_blob_path = f'{output_prefix}/{date}/{hour:02}.json.gz'
-            output_blob = bucket.blob(compacted_blob_path)
-            output_blob.upload_from_file(buffer, content_type='application/gzip')
-            print(f"Data compacted and saved to {compacted_blob_path}")
+            # compacted_blob_path = f'{output_prefix}/day={date}/hour={hour:02}/data.json.gz'
+            # output_blob = bucket.blob(compacted_blob_path)
+            # output_blob.upload_from_file(buffer, content_type='application/gzip')
+            # print(f"Data compacted and saved to {compacted_blob_path}")
 
 def main():
     for date in interpolate_dates(start_date=start_date, inclusive=inclusive):

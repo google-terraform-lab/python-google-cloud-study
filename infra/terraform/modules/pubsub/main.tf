@@ -41,8 +41,6 @@ resource "google_pubsub_subscription" "subscriptions" {
   labels = var.labels
 }
 
-
-
 resource "google_pubsub_subscription" "storage" {
   count = var.bucket_name != "" ? 1 : 0
 
@@ -58,6 +56,7 @@ resource "google_pubsub_subscription" "storage" {
 
     filename_prefix = "${var.name}/"
     filename_datetime_format = "YYYY-MM-DD/hh/mm_ssZ"
+
     # filename_suffix = "-%{random_suffix}"
 
     max_bytes = 10 * 1000 * 1000
