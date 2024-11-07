@@ -2,7 +2,9 @@
 TERRAFORM_IMAGE_NAME=hashicorp/terraform:1.9
 BUCKET_NAME=pubsub-storage-poc
 PUBSUB_TOPIC=projects/personal-433817/topics/pubsubpoc-users
-
+SESSION_TOPIC_NAME=projects/personal-433817/topics/pubsubpoc-sessions
+MOVIE_TOPIC_NAME=projects/personal-433817/topics/pubsubpoc-movies
+START_DATE=2024-11-05
 
 # TRACE, DEBUG, INFO, WARN or ERROR
 BASE_TERRAFORM=docker run --rm \
@@ -45,12 +47,16 @@ deploy-basics: init
 deploy-pubsubs: plan
 	${BASE_TERRAFORM} apply \
 		-target=module.pubsub-users \
+		-target=module.pubsub-movies \
+		-target=module.pubsub-sessions \
 		-target=module.pubsub-not-allowed \
 		--auto-approve
 
 deploy-tables: plan
 	${BASE_TERRAFORM} apply \
 		-target=module.users_table \
+		-target=module.sessions_table \
+		-target=module.movies_table \
 		--auto-approve
 
 deploy-all: deploy-basics build-and-push-redrive-image
@@ -65,19 +71,36 @@ destroy: init
 pubsub-produce:
 	cd examples/pubsub && \
 	TOPIC_NAME=${PUBSUB_TOPIC} \
+	SESSION_TOPIC_NAME=${SESSION_TOPIC_NAME} \
+	MOVIE_TOPIC_NAME=${MOVIE_TOPIC_NAME} \
 	python pubsub/producer.py
 
-pubsub-compact:
+pubsub-compact-users:
 	cd examples/pubsub && \
-	BUCKET_NAME=${BUCKET_NAME} \
-	TOPIC_NAME=${PUBSUB_TOPIC} \
-	START_DATE=2024-11-05 \
-	python pubsub/compact.py
+		BUCKET_NAME=${BUCKET_NAME} \
+		TOPIC_NAME=${PUBSUB_TOPIC} \
+		START_DATE=${START_DATE} \
+		python pubsub/compact.py 
 
+pubsub-compact-sessions:
+	cd examples/pubsub && \
+		BUCKET_NAME=${BUCKET_NAME} \
+		TOPIC_NAME=${SESSION_TOPIC_NAME} \
+		START_DATE=${START_DATE} \
+		python pubsub/compact.py 
+
+pubsub-compact-movies:
+	cd examples/pubsub && \
+		BUCKET_NAME=${BUCKET_NAME} \
+		TOPIC_NAME=${MOVIE_TOPIC_NAME} \
+		START_DATE=${START_DATE} \
+		python pubsub/compact.py
+
+pubsub-compact: pubsub-compact-users pubsub-compact-sessions pubsub-compact-movies
 
 pubsub-redrive:
 	cd examples/pubsub && \
 	BUCKET_NAME=${BUCKET_NAME} \
 	TOPIC_NAME=${PUBSUB_TOPIC} \
-	FROM_DATE=2024-11-05 \
+	FROM_DATE=${START_DATE} \
 	python pubsub/redrive.py
