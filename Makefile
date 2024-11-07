@@ -1,7 +1,7 @@
 
 TERRAFORM_IMAGE_NAME=hashicorp/terraform:1.9
-BUCKET_NAME=pubsub-store
-PUBSUB_TOPIC=projects/personal-433817/topics/bye
+BUCKET_NAME=pubsub-storage-poc
+PUBSUB_TOPIC=projects/personal-433817/topics/pubsubpoc-users
 
 
 # TRACE, DEBUG, INFO, WARN or ERROR
@@ -40,14 +40,23 @@ deploy-basics: init
 		-target=google_storage_bucket_iam_member.bucket-members \
 		-target=google_project_iam_binding.project \
 		-target=google_bigquery_dataset.dataset \
-		-target=google_bigquery_table.bye \
 		--auto-approve
 
+deploy-pubsubs: plan
+	${BASE_TERRAFORM} apply \
+		-target=module.pubsub-users \
+		-target=module.pubsub-not-allowed \
+		--auto-approve
+
+deploy-tables: plan
+	${BASE_TERRAFORM} apply \
+		-target=module.users_table \
+		--auto-approve
 
 deploy-all: deploy-basics build-and-push-redrive-image
 	${BASE_TERRAFORM} apply --auto-approve
 
-deploy:
+deploy: init
 	${BASE_TERRAFORM} apply --auto-approve
 
 destroy: init
@@ -62,5 +71,13 @@ pubsub-compact:
 	cd examples/pubsub && \
 	BUCKET_NAME=${BUCKET_NAME} \
 	TOPIC_NAME=${PUBSUB_TOPIC} \
-	START_DATE=2024-10-29 \
+	START_DATE=2024-11-05 \
 	python pubsub/compact.py
+
+
+pubsub-redrive:
+	cd examples/pubsub && \
+	BUCKET_NAME=${BUCKET_NAME} \
+	TOPIC_NAME=${PUBSUB_TOPIC} \
+	FROM_DATE=2024-11-05 \
+	python pubsub/redrive.py

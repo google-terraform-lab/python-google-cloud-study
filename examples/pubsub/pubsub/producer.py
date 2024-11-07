@@ -36,13 +36,13 @@ def flush_futures(futures):
     for future in futures:
         try:
             result = future.result()
-            print(f"Published message ID: {result}")
+            print(f"Published message ID: {result} in {topic_name}")
         except Exception as e:
             print(f"Failed to publish message: {e}")
 
 with pubsub_v1.PublisherClient() as client:
     futures = []
-    for message_dict in create_data_with_repetitions(total_records=10_000, repetition_rate=0.3):
+    for message_dict in create_data_with_repetitions(total_records=100_000, repetition_rate=0.3):
         message = json.dumps(message_dict).encode()
         print(message)
         future = client.publish(topic_name, message, spam='eggs')

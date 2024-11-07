@@ -1,12 +1,16 @@
 from datetime import datetime, timedelta
 from google.cloud import storage, pubsub_v1
+import pytz
 import os
+
+
+new_york_timezone = pytz.timezone('America/New_York')
 
 bucket_name = os.getenv("BUCKET_NAME")
 topic_name = os.getenv("TOPIC_NAME")
 target_date = os.getenv("FROM_DATE")
 
-_, project_id, _, folder_path = topic_name.split("/")
+_, project_id, _, folder_prefix = topic_name.split("/")
 
 storage_client = storage.Client()
 pubsub_client = pubsub_v1.PublisherClient()
@@ -20,8 +24,8 @@ def publish_to_pubsub(data):
     print(f"Published message ID: {future.result()}")
 
 
-def process_files_in_folder(date_str):
-    folder_prefix = f"{folder_path}/{date_str}/"
+def process_raw_files_in_folder(folder_prefix: str, date_str: str):
+    folder_prefix = f"{folder_prefix}_raw/{date_str}/"
     bucket = storage_client.bucket(bucket_name)
     blobs = sorted(bucket.list_blobs(prefix=folder_prefix), key=lambda blob: blob.name)
     
@@ -42,14 +46,15 @@ def process_files_in_folder(date_str):
 
 def process_dates_from_target(target_date_str):
     target_date = datetime.strptime(target_date_str, "%Y-%m-%d")
-    today = datetime.now()
+    target_date = new_york_timezone.localize(target_date).astimezone(pytz.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today = datetime.now(tz=new_york_timezone).astimezone(pytz.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
     current_date = target_date
     while current_date <= today:
         date_str = current_date.strftime("%Y-%m-%d")
         print(f"Processing folder for date: {date_str}")
 
-        process_files_in_folder(date_str)
+        process_raw_files_in_folder(folder_prefix=folder_prefix, date_str=date_str)
 
         current_date += timedelta(days=1)
 

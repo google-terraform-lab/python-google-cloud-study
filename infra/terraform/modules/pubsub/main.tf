@@ -54,7 +54,7 @@ resource "google_pubsub_subscription" "storage" {
   cloud_storage_config {
     bucket = var.bucket_name
 
-    filename_prefix = "${var.name}/"
+    filename_prefix = "${var.name}_raw/"
     filename_datetime_format = "YYYY-MM-DD/hh/mm_ssZ"
 
     # filename_suffix = "-%{random_suffix}"

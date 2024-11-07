@@ -11,6 +11,7 @@ python = "^3.12"
 google-cloud-pubsub = "^2.23.0"
 google-cloud-storage = "^2.18.2"
 faker = "^30.8.1"
+pytz = "^2024.2"
 
 
 [build-system]
