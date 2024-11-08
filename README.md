@@ -6,11 +6,12 @@ Google Cloud Study
 
 ```sql
 SELECT 
-  m.movie,
+  u.email,
   count(1) sessions
 FROM 
   pubsubs.sessions s
-JOIN  
-  pubsubs.movies m ON m.movie = s.movie
-GROUP BY m.movie
+JOIN 
+  pubsubs.users u ON s.user_id = u.id
+GROUP BY
+  u.email
 ```
