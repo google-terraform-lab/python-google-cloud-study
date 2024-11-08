@@ -23,10 +23,13 @@ resource "google_bigquery_table" "compressed" {
     autodetect    = true
     source_format = "NEWLINE_DELIMITED_JSON"
     compression = var.compressed == true ? "GZIP" : "NONE"
-
-    hive_partitioning_options {
-      mode = "AUTO"
-      source_uri_prefix = var.path
+    
+    dynamic "hive_partitioning_options" {
+      for_each = var.compressed == true ? [1] : []
+      content {
+        mode              = "AUTO"
+        source_uri_prefix = var.path
+      }
     }
 
     source_uris = [

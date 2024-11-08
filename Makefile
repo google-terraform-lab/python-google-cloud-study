@@ -55,8 +55,11 @@ deploy-pubsubs: plan build-and-push-redrive-image
 deploy-tables: plan
 	${BASE_TERRAFORM} apply \
 		-target=module.users_table \
+		-target=module.users_table_raw \
 		-target=module.sessions_table \
+		-target=module.sessions_table_raw \
 		-target=module.movies_table \
+		-target=module.movies_table_raw \
 		--auto-approve
 
 deploy-all: deploy-basics build-and-push-redrive-image
