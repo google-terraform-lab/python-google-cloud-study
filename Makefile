@@ -44,7 +44,7 @@ deploy-basics: init
 		-target=google_bigquery_dataset.dataset \
 		--auto-approve
 
-deploy-pubsubs: plan
+deploy-pubsubs: plan build-and-push-redrive-image
 	${BASE_TERRAFORM} apply \
 		-target=module.pubsub-users \
 		-target=module.pubsub-movies \

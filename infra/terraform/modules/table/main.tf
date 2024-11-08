@@ -33,4 +33,6 @@ resource "google_bigquery_table" "compressed" {
       "${var.path}*",
     ]
   }
+
+  deletion_protection=false
 }

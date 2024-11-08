@@ -11,74 +11,91 @@ topic_name = os.getenv("TOPIC_NAME")
 session_topic_name = os.getenv("SESSION_TOPIC_NAME")
 movie_topic_name = os.getenv("MOVIE_TOPIC_NAME")
 
+Faker.seed(0)
 fake = Faker()
+
 time_window_start = datetime.now(timezone.utc) - timedelta(days=1)
 time_window_end = datetime.now(timezone.utc)
-movies = ['Movie A', 'Movie B', 'Movie C', 'Movie D', 'Movie E']
+
+titles = ["Lord", "Lady", "Sir", "Dame", "Baron", "Baroness", "Count", "Countess", "Duke", "Duchess"]
+
+users  = [ (i, fake.email()) for i in range(100)]
+movies = [ (i, f"{random.choice(titles)} {fake.first_name()} of {fake.city()}") for i in range(50) ]
+
 
 def generate_movie_sessions(num_sessions=3):
     sessions = []
     for _ in range(num_sessions):
-        movie = random.choice(movies)
+        movie_id = random.choice(movies)[0]
+        user_id = random.choice(users)[0]
+
         start_time = fake.date_time_between(start_date=time_window_start, end_date=time_window_end, tzinfo=timezone.utc)
         end_time = start_time + timedelta(hours=random.randint(1, 3))
         sessions.append({
-            "movie": movie,
+            "movie_id": movie_id,
+            "user_id": user_id,
             "start_time": start_time.isoformat(),
             "end_time": end_time.isoformat()
         })
     return sessions
 
-def generate_fake_data():
-    return {
-        "name": fake.name(),
-        "email": fake.email(),
-        "timestamp": fake.date_time_between(start_date=time_window_start, end_date=time_window_end, tzinfo=timezone.utc).isoformat(),
-        "value": random.randint(1, 100),
-        "sessions": generate_movie_sessions()
-    }
-
-def flush_futures(futures):
+def flush_futures(futures, topic):
     for future in as_completed(futures):
         try:
             result = future.result()
-            print(f"Published message ID: {result}")
+            print(f"Published message ID: {result} on topic {topic}")
         except Exception as e:
             print(f"Failed to publish message: {e}")
 
-def publish_sessions(data):
-    with pubsub_v1.PublisherClient() as client:
-        futures = []
-        for session in data['sessions']:
-            message = json.dumps(session).encode()
-            future = client.publish(session_topic_name, message)
-            futures.append(future)
-        flush_futures(futures)
-
-def publish_movies():
-    with pubsub_v1.PublisherClient() as client:
-        futures = []
-        for movie in movies:
-            movie_data = {"movie": movie}
-            message = json.dumps(movie_data).encode()
-            future = client.publish(movie_topic_name, message)
-            futures.append(future)
-        flush_futures(futures)
 
 with pubsub_v1.PublisherClient() as client:
     futures = []
-    for _ in range(100):
-        message_dict = generate_fake_data()
-        message = json.dumps(message_dict).encode()
-        future = client.publish(topic_name, message)
+    for id, email in users:
+        payload = json.dumps({"id": id, "email": email}).encode()
+        future = client.publish(topic_name, payload)
         futures.append(future)
 
-        publish_sessions(message_dict)
-
         if len(futures) > 1000:
-            flush_futures(futures)
+            flush_futures(futures, topic_name)
             futures = []
 
-    flush_futures(futures)
+    flush_futures(futures, topic_name)
+    futures = []
 
-publish_movies()
+    for id, title in movies:
+        payload = json.dumps({"id": id, "title": title}).encode()
+        future = client.publish(movie_topic_name, payload)
+        futures.append(future)
+
+        if len(futures) > 1000:
+            flush_futures(futures, movie_topic_name)
+            futures = []
+
+    flush_futures(futures, movie_topic_name)
+    futures = []
+
+    num_sessions = 3
+    sessions = []
+    for id, email in users:
+        for _ in range(num_sessions):
+            movie_id = random.choice(movies)[0]
+            user_id = random.choice(users)[0]
+
+            start_time = fake.date_time_between(start_date=time_window_start, end_date=time_window_end, tzinfo=timezone.utc)
+            end_time = start_time + timedelta(hours=random.randint(1, 3))
+            payload = json.dumps({
+                "movie_id": movie_id,
+                "user_id": user_id,
+                "start_time": start_time.isoformat(),
+                "end_time": end_time.isoformat()
+            }).encode()
+
+            future = client.publish(session_topic_name, payload)
+            futures.append(future)
+            
+            if len(futures) > 1000:
+                flush_futures(futures, session_topic_name)
+                futures = []
+
+    flush_futures(futures, session_topic_name)
+    futures = []
